@@ -1,0 +1,711 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.IO;
+namespace _1412155_1412156_1412159
+{
+  /*  public class launch
+    {
+
+    }*/
+    public partial class Form1 : Form
+    {
+        struct Dictionary
+        {
+            public List<string> dulieu;
+            
+        }
+        List<Dictionary> data = new List<Dictionary>();
+        Dictionary tumoi;
+        List<string> suatu;
+        int[] soluong;
+/* ========================================================================================
+ * 
+ * ========================================================================================*/
+
+        private void khoitao(ref Dictionary a)// khởi tạo
+        {
+            a.dulieu=new List<string>();
+        }
+        private void loaddata()// load dữ liệu
+        {
+            xoatu.ForeColor = Color.Red;// Cho chữ "Xóa" thành màu đỏ
+            StreamReader p = new StreamReader("data.txt");
+            soluong = new int[28];
+            char temp1, temp2;// biến dùng đẻ lọc
+            int dem = 1;
+            Dictionary temp = new Dictionary();
+            string input = null;
+            suatu = new List<string>();// khởi tạo cho sửa từ
+            //////////////
+            soluong[0] = -1;
+            temp1 = temp2 = 'a';
+            /////////////
+            while ((input = p.ReadLine()) != null)
+            {
+               
+                if (input != "")
+                {
+                    if (input[0] == '@')
+                    {
+                        input=input.ToLower();
+                        temp2 = input[1];
+                        if(temp2!=temp1)
+                        {
+                            soluong[dem] = data.Count - 1;
+                            dem++;
+                            temp1 = temp2;
+                        }
+                        khoitao(ref temp);
+                        input = input.Remove(0, 1);
+                        temp.dulieu.Add(input);
+
+                    }
+                    else if (input == "!")
+                    {
+                        data.Add(temp);
+                    }
+                    else
+                    {
+                        temp.dulieu.Add(input);
+                    }
+                }
+            }
+            soluong[dem] = data.Count - 1;
+            p.Close();
+        }
+        
+        private string[] manghienthi()// trả về các từ hiển thị trên từ điển
+        {
+            string[] result = new string[data.Count];
+            for (int i = 0; i < data.Count;i++ )
+            {
+                result[i] = data[i].dulieu[0];
+            }
+                return result;
+        }
+
+        private int find(string entry)//tìm từ trả về vị trí
+        {
+            int mid;
+            if (entry[0] < 97) return 0;
+            if (entry[0] > 122) return data.Count - 1;
+            int l = soluong[entry[0] - 97] + 1, r = soluong[entry[0] - 96];
+            
+            mid = (l + r) / 2;
+            while (l < r && mid<data.Count )// so sánh chuỗi tìm kiểu nhị phân
+            {
+                if (String.Compare(data[mid].dulieu[0], entry) < 0)
+                {
+                    l = mid + 1;
+                    mid = (l + r) / 2;
+                }
+                else if (String.Compare(data[mid].dulieu[0], entry) > 0)
+                {
+                    r = mid - 1;
+                    mid = (l + r) / 2;
+                }
+                else break;
+            }
+           if (mid >= data.Count) return (data.Count - 1);// trường hợp ko tìm thấy hoặc vượt giới hạn
+            if (data[mid].dulieu[0] != entry)// chỉnh lại vị trí
+            {
+                int giua = mid;
+                for (int i = giua - 1; i <= giua + 2; i++)
+                {
+                    if(i>=0 && i<data.Count)
+                    if (string.Compare(data[i].dulieu[0], entry) > 0)
+                    {
+                        mid = i;
+                        break;
+                    }
+                }
+            }
+            if (mid >= data.Count)// trường hợp quá lớn
+                return data.Count;
+            else if (mid < 0) return 0;// trường hợp quá nhỏ
+            return mid;
+        }
+
+        int findtoinsert(string entry)//tìm để đưa từ mới vào
+        {
+            int mid;
+            if (entry[0] < 97) return 0;
+            if (entry[0] > 122) return data.Count - 1;
+            int l = soluong[entry[0] - 97] + 1, r = soluong[entry[0] - 96];
+            mid = (l + r) / 2;
+            while (l < r && mid < data.Count)// so sánh chuỗi tìm kiểu nhị phân
+            {
+                if (String.Compare(data[mid].dulieu[0], entry) < 0)
+                {
+                    l = mid + 1;
+                    mid = (l + r) / 2;
+                }
+                else if (String.Compare(data[mid].dulieu[0], entry) > 0)
+                {
+                    r = mid - 1;
+                    mid = (l + r) / 2;
+                }
+                else break;
+            }
+            if (mid >= data.Count) return (data.Count);// trường hợp ko tìm thấy hoặc vượt giới hạn
+            if (data[mid].dulieu[0] != entry)// chỉnh lại vị trí
+            {
+                int giua = mid;
+                for (int i = giua - 1; i <= giua + 2; i++)
+                {
+                    if (i >= 0 && i < data.Count)
+                    {
+                        if (string.Compare(data[i].dulieu[0], entry) > 0)
+                        {
+                            mid = i;
+                            break;
+                        }
+                    }
+                    else if (i == data.Count)
+                        return i;
+
+                }
+            }
+            if (mid >= data.Count)// trường hợp quá lớn
+                return data.Count;
+            else if (mid < 0) return 0;// trường hợp quá nhỏ
+            return mid;
+        }
+
+        int findtoedit(string entry)// tìm từ để chỉnh sửa
+        {
+            int mid;
+            if (entry[0] < 97 ) return -1;
+            if (entry[0] > 122) return -1;
+            int l = soluong[entry[0] - 97] + 1, r = soluong[entry[0] - 96];
+            mid = (l + r) / 2;
+            while (l < r && mid < data.Count)// so sánh chuỗi tìm kiểu nhị phân
+            {
+                if (String.Compare(data[mid].dulieu[0], entry) < 0)
+                {
+                    l = mid + 1;
+                    mid = (l + r) / 2;
+                }
+                else if (String.Compare(data[mid].dulieu[0], entry) > 0)
+                {
+                    r = mid - 1;
+                    mid = (l + r) / 2;
+                }
+                else break;
+            }
+            if(mid>=data.Count)
+            {
+                return -1;
+            }
+            if (data[mid].dulieu[0] != entry)
+            {
+                return -1;
+            }
+            else return mid;
+        }
+
+        private string [] nghia(int pos)
+        {
+            string [] result;
+            result = new string[data[pos].dulieu.Count-1];
+            for(int i=1;i<data[pos].dulieu.Count;i++)
+            {
+                switch(data[pos].dulieu[i][0])// dua vao ki tu dau tien
+                {
+                    case '*': result[i - 1] = "Từ loại: " + data[pos].dulieu[i].Remove(0, 2); break;
+                    case '-': result[i - 1] = "\t" + data[pos].dulieu[i]; break;
+                    case '=': result[i - 1] = "    Ví dụ: " + data[pos].dulieu[i].Remove(0, 2); break;
+                    case '+': result[i - 1] = "Từ đồng nghĩa: " + data[pos].dulieu[i].Remove(0, 2); break;
+                    case '~': result[i - 1] = "Từ trái nghĩa: " + data[pos].dulieu[i].Remove(0, 2); break;
+                }
+            }
+            return result;
+        }
+        List <int> daysorandom()
+        {
+            List<int> randomList = new List<int>();
+            Random a = new Random();
+            int MyNumber = 0;
+            MyNumber = a.Next(0, data.Count);
+            for (int i = 0; i < 5; i++)
+            {
+                while (randomList.Contains(MyNumber))
+                    MyNumber = a.Next(0, data.Count);
+                    randomList.Add(MyNumber);
+            }
+            return randomList;
+        }
+
+ /* ========================================================================================
+ * 
+ * ========================================================================================*/
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            loaddata();
+            Hienthi.DataSource = manghienthi();
+            //xoa();
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            int pos;
+            if (textBox1.Text != "")
+            {
+                pos = find(textBox1.Text.ToLower());
+                Hienthi.SelectedIndex = pos;
+                nghiacuatu.DataSource = nghia(find(Ketqua.Text));
+            }
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            
+        }
+        private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Ketqua.Text = Hienthi.SelectedItem.ToString();
+        }
+
+        private void listView1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void tabPage2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click(object sender, EventArgs e)// Nút học từ vựng
+        {
+            List<int> ran = new List<int>();
+            ran = daysorandom();
+            textBox2.Text = data[ran[0]].dulieu[0];
+            textBox3.Text = data[ran[1]].dulieu[0];
+            textBox4.Text = data[ran[2]].dulieu[0];
+            textBox5.Text = data[ran[3]].dulieu[0];
+            textBox6.Text = data[ran[4]].dulieu[0];
+            listBox1.DataSource = nghia(find(data[ran[0]].dulieu[0]));
+            listBox2.DataSource = nghia(find(data[ran[1]].dulieu[0]));
+            listBox3.DataSource = nghia(find(data[ran[2]].dulieu[0]));
+            listBox4.DataSource = nghia(find(data[ran[3]].dulieu[0]));
+            listBox5.DataSource = nghia(find(data[ran[4]].dulieu[0]));
+        }
+
+        private void Hienthi_DrawItem(object sender, DrawItemEventArgs e)
+        {
+        }
+
+        private void Ketqua_TextChanged(object sender, EventArgs e)
+        {
+            nghiacuatu.DataSource = nghia(find(Ketqua.Text));
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void nghiacuatu_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void listBox2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void listBox4_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void listBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void listBox1_SelectedIndexChanged_1(object sender, EventArgs e)
+        {
+
+        }
+        int newword = 0;
+        private void button1_Click_1(object sender, EventArgs e)// nút thêm từ
+        {
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn chưa nhập gì cả!", "Thông báo");
+            else if (newword == 1)
+            {
+
+                data.Insert(findtoinsert(tumoi.dulieu[0]), tumoi);
+                soluong[tumoi.dulieu[0][0] - 96]++;
+                //ghi ra file
+                File.Delete("data.txt");
+                StreamWriter p = new StreamWriter("data.txt", true);
+                for (int i = 0; i < data.Count; i++)
+                {
+                    for (int j = 0; j < data[i].dulieu.Count; j++)
+                    {
+                        if (j == 0)
+                            p.WriteLine("@" + data[i].dulieu[j]);
+                        else if (data[i].dulieu[j] != null)
+                            p.WriteLine(data[i].dulieu[j]);
+                    }
+                    p.WriteLine("!");
+                }
+                listBox6.ResetText();
+                listBox6.DataSource = null;
+                p.Close();
+                tumoi.dulieu.Clear();// xóa từ mới
+                data.Clear();// xóa tất cả dữ liệu cũ
+                Hienthi.ResetText();//xóa bảng gợi ý
+                loaddata();//load lại dữ liệu
+                Hienthi.DataSource = manghienthi();//hiển thị lại
+                MessageBox.Show("Thành công", "Thông báo");
+            }
+            else MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+        }
+
+        private void themnghia_TextChanged(object sender, EventArgs e)
+        {
+        }
+        
+        private void themtu_TextChanged(object sender, EventArgs e)
+        {
+            if(listBox6.DataSource==null)
+            newword = 0;
+        }
+
+        private void listBox6_SelectedIndexChanged(object sender, EventArgs e)  //kết quả thêm từ
+        {
+
+            
+        }
+
+        private void button3_Click(object sender, EventArgs e)//nút thêm từ mới
+        {
+            if (themtu.Text != "" && newword == 1)
+            {
+                tumoi = new Dictionary();
+                tumoi.dulieu = new List<string>();
+                tumoi.dulieu.Add(themtu.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray(); ;
+                themtu.ResetText();
+            }
+            else if (newword == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Thông báo");
+        }
+
+        private void textBox11_TextChanged(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void button4_Click(object sender, EventArgs e)//nút thêm từ loại
+        {
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn phải nhập từ trước đã!", "Lỗi");
+            else
+            {
+                tumoi.dulieu.Add("* " + themtuloai.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray();
+                themtuloai.ResetText();
+            }
+        }
+
+        private void button5_Click(object sender, EventArgs e)// nút thêm nghĩa
+        {
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn phải nhập từ trước đã!", "Lỗi");
+            else
+            {
+                tumoi.dulieu.Add("- " + themnghia.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray();
+            }
+            themnghia.ResetText();
+        }
+
+        private void button6_Click(object sender, EventArgs e)// nút thêm ví dụ
+        {
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn phải nhập từ trước đã!", "Lỗi");
+            else
+            {
+                tumoi.dulieu.Add("= " + themvidu.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray();
+            }
+            themvidu.ResetText();
+        }
+
+        private void button7_Click(object sender, EventArgs e)// nút thêm từ đồng nghĩa
+        {
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn phải nhập từ trước đã!", "Lỗi");
+            else
+            {
+                tumoi.dulieu.Add("+ " + themdongnghia.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray();
+            }
+            themdongnghia.ResetText();
+        }
+
+        private void button8_Click(object sender, EventArgs e)// nút thêm từ trái nghĩa
+        {
+
+            if (listBox6.DataSource == null) MessageBox.Show("Bạn phải nhập từ trước đã!", "Lỗi");
+            else
+            {
+                tumoi.dulieu.Add("~ " + themtrainghia.Text);
+                listBox6.DataSource = tumoi.dulieu.ToArray();
+            }
+            themtrainghia.ResetText();
+        }
+        int del=0;// biến dùng kiểm tra xem bấm kiểm tra hay chưa?
+        private void kiemtra_Click(object sender, EventArgs e)
+        {
+            if (textBox7.Text!="")
+            {
+                int n;
+                n = findtoedit(textBox7.Text);
+                if (n < 0 || textBox7.Text == null)
+                    MessageBox.Show("Không tìm thấy từ!", "Thông báo");
+                else
+                {
+                    listBox7.DataSource = data[n].dulieu.ToArray();
+                    del = 1;
+                }
+            }
+        }
+
+        private void xoatu_Click(object sender, EventArgs e)//nút xóa từ
+        {
+            if (del == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Thông báo");
+            else
+            {
+                DialogResult thongbao;
+                thongbao = MessageBox.Show("Bạn thực sự muốn xóa?", "Thông báo", MessageBoxButtons.YesNo);
+                if(thongbao==DialogResult.Yes)
+                {
+                    data.RemoveAt(findtoedit(textBox7.Text));
+                    File.Delete("data.txt");
+                    //ghi ra file
+                    StreamWriter p = new StreamWriter("data.txt", true);
+                    for (int i = 0; i < data.Count; i++)
+                    {
+                        for (int j = 0; j < data[i].dulieu.Count; j++)
+                        {
+                            if (j == 0)
+                                p.WriteLine("@" + data[i].dulieu[j]);
+                            else if (data[i].dulieu[j] != null)
+                                p.WriteLine(data[i].dulieu[j]);
+                        }
+                        p.WriteLine("!");
+                    }
+                    listBox6.ResetText();
+                    listBox6.DataSource = null;
+                    p.Close();
+                    data.Clear();// xóa tất cả dữ liệu cũ
+                    Hienthi.ResetText();//xóa bảng gợi ý
+                    loaddata();//load lại dữ liệu
+                    Hienthi.DataSource = manghienthi();//hiển thị lại
+                    textBox7.ResetText();
+                    listBox7.DataSource = null;
+                    MessageBox.Show("Xóa thành công", "Thông báo");
+                }
+            }
+        }
+
+        private void textBox7_TextChanged(object sender, EventArgs e)
+        {
+            del = 0;
+            listBox7.DataSource = null;
+        }
+
+        private void listBox7_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+        int edit = 0;
+        private void kiemtra2_Click(object sender, EventArgs e)// nút kiểm tra trước khi chỉnh sửa từ
+        {
+            if(textBox8.Text!="")
+            {
+                int n;
+                n = findtoedit(textBox8.Text);
+                if (n < 0 || textBox8.Text == null)
+                    MessageBox.Show("Không tìm thấy từ!", "Thông báo");
+                else
+                {
+                    listBox8.DataSource = data[n].dulieu.ToArray();
+                    edit = 1;
+                }
+            }
+        }
+
+        private void textBox8_TextChanged(object sender, EventArgs e)
+        {
+            edit = 0;
+            if(suatu.Count!=0)
+            suatu.Clear();
+            listBox8.DataSource = null;
+        }
+
+        private void themtuloai_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button13_Click_1(object sender, EventArgs e)// nút xác nhận chỉnh sửa
+        {
+            if (listBox8.DataSource == null) MessageBox.Show("Bạn chưa nhập gì cả!", "Thông báo");
+            else
+            {
+                int posi = findtoedit(textBox8.Text);
+                data[posi].dulieu.RemoveRange(1, data[posi].dulieu.Count - 1);
+                for (int i = 0; i < suatu.Count; i++)
+                {
+                    data[posi].dulieu.Add(suatu[i]);
+                }
+
+
+                File.Delete("data.txt");
+                //ghi ra file
+                StreamWriter p = new StreamWriter("data.txt", true);
+                for (int i = 0; i < data.Count; i++)
+                {
+                    for (int j = 0; j < data[i].dulieu.Count; j++)
+                    {
+                        if (j == 0)
+                            p.WriteLine("@" + data[i].dulieu[j]);
+                        else if (data[i].dulieu[j] != null)
+                            p.WriteLine(data[i].dulieu[j]);
+                    }
+                    p.WriteLine("!");
+                }
+           
+            listBox9.DataSource = null;
+            listBox8.DataSource = null;
+            p.Close();
+            data.Clear();// xóa tất cả dữ liệu cũ
+            textBox8.ResetText();//xóa bảng gợi ý
+            loaddata();//load lại dữ liệu
+            Hienthi.DataSource = manghienthi();//hiển thị lại
+            suatu.Clear();
+            MessageBox.Show("Chỉnh sửa thành công", "Thông báo");
+            }
+
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            if (edit == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+            else
+            {
+                suatu.Add("* " + tuloai2.Text);
+                tuloai2.ResetText();
+            }
+            listBox9.DataSource = suatu.ToArray();
+        }
+
+        private void huy_Click(object sender, EventArgs e)
+        {
+            tumoi.dulieu.Clear();
+            listBox6.DataSource = null;
+            themtu.ResetText();
+            themnghia.ResetText();
+            themdongnghia.ResetText();
+            themtuloai.ResetText();
+            themvidu.ResetText();
+            themtrainghia.ResetText();
+        }
+
+        private void doinghia_Click(object sender, EventArgs e)
+        {
+            if (edit == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+            else
+            {
+                suatu.Add("- " +nghia2.Text);
+                nghia2.ResetText();
+            }
+            listBox9.DataSource = suatu.ToArray();
+        }
+
+        private void vidu2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dongnghia2_TextChanged(object sender, EventArgs e)
+        {
+       
+        }
+
+        private void trainghia2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void doividu_Click(object sender, EventArgs e)
+        {
+            if (edit == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+            else
+            {
+                suatu.Add("= " + vidu2.Text);
+                vidu2.ResetText();
+            }
+            listBox9.DataSource = suatu.ToArray();
+        }
+
+        private void doidongnghia_Click(object sender, EventArgs e)
+        {
+            if (edit == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+            else
+            {
+                suatu.Add("+ " + dongnghia2.Text);
+                dongnghia2.ResetText();
+            }
+            listBox9.DataSource = suatu.ToArray();
+        }
+
+        private void doitrainghia_Click(object sender, EventArgs e)
+        {
+            if (edit == 0) MessageBox.Show("Bạn chưa nhấn 'Kiểm tra'", "Lỗi");
+            else
+            {
+                suatu.Add("~ " + trainghia2.Text);
+                trainghia2.ResetText();
+            }
+            listBox9.DataSource = suatu.ToArray();
+        }
+
+        private void huy2_Click(object sender, EventArgs e)
+        {
+            listBox9.DataSource = null;
+            suatu.Clear();
+        }
+
+        private void kiemtra3_Click(object sender, EventArgs e)
+        {
+            if(findtoedit(themtu.Text)<0)
+            {
+                MessageBox.Show("Chưa có từ này, bạn có thể thêm", "Thông báo");
+                newword = 1;
+            }
+            else
+            {
+                MessageBox.Show("Đã có từ nảy rồi", "Thông báo");
+            }
+        }
+    }
+}
